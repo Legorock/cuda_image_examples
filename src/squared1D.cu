@@ -5,42 +5,45 @@
 
 // Kernel function to add the elements of two arrays
 __global__
-void add(int n, float *x, float *y)
+void squared_1D(float* input_image, float* output_image, int image_size)
 {
-  for (int i = 0; i < n; i++)
-    y[i] = x[i] + y[i];
+    int idx = blockDim.x * blockIdx.x + threadIdx.x;
+    for (int i = idx; i < image_size ; i += gridDim.x) {
+        output_image[i] = input_image[i] * input_image[i];
+    }
 }
 
 GrayScaleImage<float> squared1D(const GrayScaleImage<float>& image)
 {
-  int N = 1<<20;
-  float *x, *y;
+    int image_size = image.height * image.width;
+    float *input_image, *output_image;
 
-  // Allocate Unified Memory – accessible from CPU or GPU
-  cudaMallocManaged(&x, N*sizeof(float));
-  cudaMallocManaged(&y, N*sizeof(float));
+    // Allocate Unified Memory – accessible from CPU or GPU
+    cudaMallocManaged(&input_image, image_size * sizeof(float));
+    cudaMallocManaged(&output_image, image_size * sizeof(float));
 
-  // initialize x and y arrays on the host
-  for (int i = 0; i < N; i++) {
-    x[i] = 1.0f;
-    y[i] = 2.0f;
-  }
+    // initialize and copy arrays on the host
+    for (int i = 0; i < image_size; i++) {
+        input_image[i] = image.pixels[i];
+        output_image[i] = 0.0f;
+    }
 
-  // Run kernel on 1M elements on the GPU
-  add<<<1, 1>>>(N, x, y);
+    int num_threads = 1024;
+    int num_blocks = std::max(image_size / num_threads, 1024);
 
-  // Wait for GPU to finish before accessing on host
-  cudaDeviceSynchronize();
+    squared_1D<<<num_blocks, num_threads>>>(input_image, output_image, image_size);
 
-  // Check for errors (all values should be 3.0f)
-  float maxError = 0.0f;
-  for (int i = 0; i < N; i++)
-    maxError = fmax(maxError, fabs(y[i]-3.0f));
-  std::cout << "Max error: " << maxError << std::endl;
+    // Wait for GPU to finish before accessing on host
+    cudaDeviceSynchronize();
 
-  // Free memory
-  cudaFree(x);
-  cudaFree(y);
+    // copy back to CPU
+    GrayScaleImage<float> output;
+    output.height = image.height;
+    output.width = image.width;
+    output.pixels = std::unique_ptr<float[]>(output_image);
 
-  return GrayScaleImage<float>{};
+    cudaFree(input_image);
+    // cudaFree(output_image);
+
+    return output;
 }
