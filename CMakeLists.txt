@@ -19,7 +19,6 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
 	cmake_policy(SET CMP0135 NEW)
 endif()
 
-set_target_properties(NaioCudaChallange PROPERTIES CUDA_ARCHITECTURES ${CUDA_ARCH})
 find_package(CUDAToolkit REQUIRED)
 
 # Enable AddressSanitizer based on "ENABLE_ASAN"
