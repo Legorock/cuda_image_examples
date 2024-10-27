@@ -8,8 +8,8 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# add_executable(db_common_test src/common.test.cpp)
-# target_link_libraries(db_common_test GTest::gtest_main common)
+add_executable(squared1D_test squared1D.test.cpp)
+target_link_libraries(squared1D_test GTest::gtest_main squared1D)
 
 include(GoogleTest)
-# gtest_discover_tests(db_common_test)
+gtest_discover_tests(squared1D_test)

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.27)
 
 # set the project name
-project(NaioCudaChallange VERSION 1.0 LANGUAGES CXX)
+project(NaioCudaChallange VERSION 1.0 LANGUAGES CXX CUDA)
 
 option(ENABLE_TESTING "Enables unit-testing" ON)
 option(ENABLE_ASAN "Enables address sanitizer tool" OFF)
